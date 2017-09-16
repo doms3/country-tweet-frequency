@@ -14,7 +14,7 @@ TwitterStream twitter;
 int tweetsChecked = 0;
 int countriesFound = 0;
 
-// Import should be of size 241 but choose 250 for extra buffer
+// Import should be of size 241 but 250 chosen for extra buffer
 Map< String, Set<String> > searchMap = new HashMap( 250 );
 Map< String, Set<String> > tweetMap = new HashMap( 250 );
 
@@ -24,9 +24,9 @@ void setup() {
   size(1200, 600); 
 
   geoMap = new GeoMap(this);  // Create the geoMap object.
-  geoMap.readFile("world");   // Read shapefile.  
+  geoMap.readFile("assets/world");   // Read shapefile.  
 
-  Table rawData = loadTable( "countries.txt", "tsv" ); // Load countries, format should be " Country Name + "\t" + Search Term + ", " + Search Term .... "
+  Table rawData = loadTable( "assets/countries.txt", "tsv" ); // Load countries, format should be " Country Name + "\t" + Search Term + ", " + Search Term .... "
   
   for ( TableRow row : rawData.rows() ) {
     String country = row.getString( 0 ); // Get countries
@@ -34,8 +34,9 @@ void setup() {
     searchMap.put( country, new HashSet<String>( Arrays.asList(searchTerms) ) ); // Setup hashmap
   }
 
-  twitter = getTwitterStream( "58aB3gVhENOey90YNYZwqmLzQ", "BoTBHjlTe0tcwMiabZcuuFalgPAZCugKgSLDdpIK0a2tRj583o", // Consumer Key, Consumer Secret 
-    "404552637-vN5pCqUdDIvAydnzYmtdPk8GoCNAQI4vgWQJkxdV", "Ui8rBWel759ZlKxfrDmipOUMuE9lz0WK3spqgcgDu7Vo1" ); // Access Token, Access Token Secret
+  // "secure/login.txt" is not included in the repository, downloaders must create this directory with their own login data
+  String[] loginInfo = loadStrings( "secure/login.txt" );
+  twitter = getTwitterStream( loginInfo[0], loginInfo[1], loginInfo[2], loginInfo[3] ); // Consumer Key, Consumer Secret, Access Token, Access Token Secret
 
   StatusListener listener = new StatusListener() {
     public void onStatus(Status status) {
@@ -110,9 +111,9 @@ void mouseClicked() {
   List<String> results = new ArrayList();
   for ( String country : tweetMap.keySet() ) {
     results.add( country + "\t" + tweetMap.get( country ).size() );
-    saveStrings( "countries/" + country + ".txt", tweetMap.get( country ).toArray( new String[0] ) );
+    saveStrings( "out/countries/" + country + ".txt", tweetMap.get( country ).toArray( new String[0] ) );
   }
-  saveStrings( "countries/results.txt", results.toArray( new String[0] ) );
+  saveStrings( "out/countries/results.txt", results.toArray( new String[0] ) );
   exit();
 }
 
