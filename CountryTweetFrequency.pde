@@ -15,23 +15,27 @@ int tweetsChecked = 0;
 int countriesFound = 0;
 
 // Import should be of size 241 but 250 chosen for extra buffer
-Map< String, Set<String> > searchMap = new HashMap( 250 );
-Map< String, Set<String> > tweetMap = new HashMap( 250 );
+
+// Maps the given country to it search terms
+Map< String, List<String> > searchMap = new HashMap( 250 );
+
+// Maps the given country to the tweet that mention it
+Map< String, List<String> >  tweetMap = new HashMap( 250 );
 
 void setup() {
   background(202, 226, 245);  // Ocean colour
   stroke(0, 40); // Border colour
   size(1200, 600); 
 
-  geoMap = new GeoMap(this);  // Create the geoMap object.
-  geoMap.readFile("assets/world");   // Read shapefile.  
+  geoMap = new GeoMap( this );  // Create the geoMap object.
+  geoMap.readFile( "assets/world" );   // Read shapefile.  
 
   Table rawData = loadTable( "assets/countries.txt", "tsv" ); // Load countries, format should be " Country Name + "\t" + Search Term + ", " + Search Term .... "
   
   for ( TableRow row : rawData.rows() ) {
     String country = row.getString( 0 ); // Get countries
     String[] searchTerms = row.getString( 1 ).split( ", " ); // Get list of search terms
-    searchMap.put( country, new HashSet<String>( Arrays.asList(searchTerms) ) ); // Setup hashmap
+    searchMap.put( country, new ArrayList<String>( Arrays.asList(searchTerms) ) ); // Setup hashmap
   }
 
   // "secure/login.txt" is not included in the repository, downloaders must create this directory with their own login data
@@ -42,20 +46,21 @@ void setup() {
     public void onStatus(Status status) {
       // This is executed on every new Status 
       
-      String tweetBody = status.getText().toLowerCase();
+      String tweetBody = status.getText();
       for ( String country : searchMap.keySet() ) {
         for ( String searchTerm : searchMap.get( country ) ) {
           searchTerm = searchTerm.toLowerCase();
-          if ( tweetBody.contains( " " + searchTerm + " " ) ) {
-            if ( tweetMap.get( country ) == null )
-              tweetMap.put( country, new HashSet< String >() );
-            tweetMap.get(country).add( tweetBody );
+          if ( tweetBody.toLowerCase().contains( " " + searchTerm + " " ) || tweetBody.toLowerCase().contains( " #" + searchTerm + " " )) {
+            if ( tweetMap.get( country ) == null ) {
+              tweetMap.put( country, new ArrayList< String >() );
+            }
+            tweetMap.get( country ).add( tweetBody );
             countriesFound++;
             break;
           }
         }
       }
-      println( countriesFound, tweetsChecked++ );
+      println( countriesFound, ++tweetsChecked );
     }
     
     public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
